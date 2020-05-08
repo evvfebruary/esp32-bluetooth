@@ -1,8 +1,8 @@
 #include "BluetoothSerial.h"
 #include <TroykaIMU.h>
 
+String BluetoothName = "ESP32";
 BluetoothSerial SerialBT;
-String MACadd = "AA:BB:CC:11:22:33";
 
 Gyroscope gyro;
 Accelerometer accel;
@@ -30,14 +30,22 @@ void callback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
       break;
     case ESP_SPP_CLOSE_EVT:
       Serial.println("Client diconnected");
+      // блютуз крашится, после реконнекта
+      // это костыль, чтобы рпешить проблему
+      ESP.restart();
+      break;
+    case ESP_SPP_DATA_IND_EVT:
+      Serial.println("Data received");
+      Serial.printf("ESP_SPP_DATA_IND_EVT len=%d handle=%d", param->data_ind.len, param->data_ind.handle);
       break;
   }
+  Serial.println(ESP_SPP_SRV_OPEN_EVT);
 }
  
 void setup() {
   Serial.begin(112500);
-  SerialBT.begin("ESP32");
-  Serial.println("ESP32");
+  SerialBT.begin(BluetoothName);
+  Serial.println(BluetoothName);
   SerialBT.register_callback(callback);
 
   gyro.begin();
@@ -45,10 +53,10 @@ void setup() {
 }
 
 void loop() {
-  char* tmp = measurement();
-  Serial.println(tmp);
-  
-  SerialBT.println(tmp);
-
+  if (SerialBT.hasClient()) {
+    char* tmp = measurement();
+    Serial.println(tmp);
+    SerialBT.println(tmp);
+  }
   delayMicroseconds(1);
 }
