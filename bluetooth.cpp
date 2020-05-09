@@ -56,7 +56,6 @@ void callback(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
       Serial.println(param->data_ind.len);
       break;
   }
-  Serial.println(ESP_SPP_SRV_OPEN_EVT);
 }
 
 void printDeviceAddress() {
